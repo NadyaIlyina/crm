@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Readers</h2>
+
+<table id="readersList">
+
+</table>
+
+<form action="#">
+    <input id="reader_first_name" placeholder="first name">
+    <input id="reader_last_name" placeholder="last name">
+    <input id="reader_patronymic" placeholder="patronymic">
+    <input id="reader_address" placeholder="address">
+    <input id="reader_phone_number" placeholder="phone number">
+    <button onclick="createReader()">Create reader</button>
+</form>
+
+<input id="search_field">
+<button onclick="searchByFirstName()">Search by First name</button>
+<script>
+    function searchByFirstName() {
+        var firstName = document.getElementById("search_field").value;
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            console.log(this.responseText)
+            if (this.readyState == 4 && this.status == 200) {
+                var readers = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>Reader id</th>\n' +
+                    '        <th>Reader first name</th>\n' +
+                    '        <th>Reader last name</th>\n' +
+                    '        <th>Reader patronymic</th>\n' +
+                    '        <th>Reader address</th>\n' +
+                    '        <th>Reader phone number</th>\n' +
+                    '        <th>Delete</th>\n' +
+                    '    </tr>';
+                for (var i = 0; i < readers.length; i++) {
+                    var reader = readers[i];
+                    html = html + '<tr><td>' + reader.id + '</td>\n' +
+                        '        <td>' + reader.firstName + '</td>\n' +
+                        '        <td>' + reader.lastName + '</td>\n' +
+                        '        <td>' + reader.patronymic + '</td>' +
+                        '        <td>' + reader.address + '</td>' +
+                        '        <td>' + reader.phoneNumber + '</td>' +
+                        '        <td><button onclick="deleteReader(' + reader.id + ')">Delete</button></td></tr>';
+
+                }
+                document.getElementById("readersList").innerHTML = html;
+            }
+        };
+        xhttp.open("GET", "http://localhost:8080/reader/findByFirstName?firstName=" + firstName, true);
+        xhttp.setRequestHeader('Content-type', 'text/xml;charset=utf-8');
+        xhttp.send();
+    }
+
+    function deleteReader(readerId) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://localhost:8080/reader/delete/" + readerId, true);
+        xhttp.send();
+        document.location.reload();
+    }
+
+    function createReader() {
+        var readerFirstName = document.getElementById("reader_first_name").value;
+        var readerLastName = document.getElementById("reader_last_name").value;
+        var readerPatronymic = document.getElementById("reader_patronymic").value;
+        var readerAddress = document.getElementById("reader_address").value;
+        var readerPhoneNumber = document.getElementById("reader_phone_number").value;
+
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        xmlhttp.open("POST", "http://localhost:8080/reader/save");
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        xmlhttp.send(JSON.stringify({firstName: readerFirstName, lastName: readerLastName, patronymic: readerPatronymic,
+            address: readerAddress, phoneNumber: readerPhoneNumber }));
+
+        loadReaders();
+    }
+
+    function loadReaders() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var readers = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>Reader id</th>\n' +
+                    '        <th>Reader first name</th>\n' +
+                    '        <th>Reader last name</th>\n' +
+                    '        <th>Reader patronymic</th>\n' +
+                    '        <th>Reader address</th>\n' +
+                    '        <th>Reader phone number</th>\n' +
+                    '        <th>Delete</th>\n' +
+                    '    </tr>';
+                for (var i = 0; i < readers.length; i++) {
+                    var reader = readers[i];
+                    html = html + '<tr><td>' + reader.id + '</td>\n' +
+                        '        <td>' + reader.firstName + '</td>\n' +
+                        '        <td>' + reader.lastName + '</td>\n' +
+                        '        <td>' + reader.patronymic + '</td>' +
+                        '        <td>' + reader.address + '</td>' +
+                        '        <td>' + reader.phoneNumber + '</td>' +
+                        '        <td><button onclick="deleteReader(' + reader.id + ')">Delete</button></td></tr>';
+
+                }
+                document.getElementById("readersList").innerHTML = html;
+            }
+        };
+        xhttp.open("GET", "http://localhost:8080/reader/findAll", true);
+        xhttp.send();
+    }
+
+    loadReaders();
+</script>
+</body>
+</html>
